@@ -1,0 +1,49 @@
+1.Virtual Os Configuartion
+a) Windows Server 2022 (Domain controller)
+Allocated Ram: 4 GB
+Allocated CPUS: 2 
+Allocated Memory: 50GB
+
+b) Windows 10 Pro (Victim Machine)
+Allocated Ram: 4 GB
+Allocated CPUS: 2 
+Allocated Memory: 50GB
+
+2. Network Configuration
+A virtual bridge(vboxnet0) was extablished to create an isolated "internal network' subnet.
+Static IPs were assigned to the devices to create the internal network
+host gateway: 192.168.56.1
+Domain controller: 192.168.56.10
+Victim Machine: 192.168.56.50
+
+- Later a DHCP server was added to the domain controller. This was configured to handle dynamic IP assignments, eliminating the need to manually add ip addresses.
+
+3.Identity & Access Management
+-The lab was transitioned from a decentralized Workgroup model to a centalized Active Directory forest named lab.local
+-This was done using the Add Roles and Features Wizard on the sever manager on the server
+
+Domain User Provisioning(Powershell Scripts)
+# Creating User 
+$pass = Convert-To-SecureString "Password@123" -AsPlainText -Force
+New-ADUser -Name "User 1" -SamAccountName "vuser" -UserprincipalName "vuser.lab.local" -Enabled $true -AccountPassword $pass
+
+# Create security group
+New-ADGroup -Name "LabUsers" -GroupCategory Security -GroupScope Global
+
+# Adding the user to the security group
+add-AdGroupMember -Identity "LabUsers" -Members "vuser"
+
+On the Victim Machine the following powershell script was executed to automate joining the domain
+# join lab.local and reboot
+Add-Computer -DomainName "lab.local" -Credentials (Get-Credentials) -Restart
+
+--> After the initail setup now it was time to check is my Kali Linux host Machine could reach the Domain Controller and similary the victim machine.
+# Simple Ping
+ping -c 3 192.168.56.10
+
+The ping was succesful with 0 packet loss.
+Now it was time to continue to the next step --->
+
+
+
+
